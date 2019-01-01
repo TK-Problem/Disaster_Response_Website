@@ -1,8 +1,25 @@
 import sys
+import pandas as pd
+# from sqlalchemy import create_engine
 
 
 def load_data(messages_filepath, categories_filepath):
-    pass
+    """
+    Input:
+        messages_filepath: str, filepath to .csv file with message text
+        categories_filepath: str, filepath to .csv file with information about message category
+    Output:
+        pandas DataFrame
+    """
+
+    # load message and category datasets into pandas DataFrames
+    df_messages = pd.read_csv(messages_filepath)
+    df_categories = pd.read_csv(categories_filepath)
+
+    # merge both datasets into single pandas DataFrame
+    df = pd.merge(df_messages, df_categories, how="inner", on='id', left_index=True, right_index=True)
+
+    return df
 
 
 def clean_data(df):

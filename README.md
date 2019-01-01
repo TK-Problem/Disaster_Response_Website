@@ -1,6 +1,9 @@
 # Disaster Response Pipeline Project
 
-### Instructions:
+## Description
+
+
+## How to use instructions:
 1. Run the following commands in the project's root directory to set up your database and model.
 
     - To run ETL pipeline that cleans data and stores in database
@@ -12,3 +15,7 @@
     `python run.py`
 
 3. Go to http://0.0.0.0:3001/
+
+## Requirements
+
+Required list of Python is available on `requirements.txt`.
