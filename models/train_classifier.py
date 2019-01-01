@@ -1,16 +1,104 @@
 import sys
+import pandas as pd
+import nltk
+
+nltk.download(['punkt', 'wordnet'])
+from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
+from sqlalchemy import create_engine
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+from sklearn.preprocessing import FunctionTransformer
+from sklearn.multioutput import MultiOutputClassifier
+from sklearn.ensemble import RandomForestClassifier
 
 
 def load_data(database_filepath):
-    pass
+    """
+    Load SQL database file as pandas DataFrame
+
+    :param database_filepath: str, path to SQL database file
+    :return: X: pandas Dataframe for training features [message text and message genre]
+             y: pandas DataFrame with category messages
+             category_names: message category names
+    """
+    engine = create_engine('sqlite:///' + database_filepath)
+    df = pd.read_sql("SELECT * FROM messages", engine)
+    X = df[["message", "genre"]]
+    y = df.iloc[:,4:]
+    category_names = y.columns.values.tolist()
+
+    return X, y, category_names
 
 
 def tokenize(text):
-    pass
+    """
+    :param text: str, text sms message
+    :return: remove punctuation, lower case all letters and tokenize message
+    """
+    tokens = word_tokenize(text)
+    lemmatizer = WordNetLemmatizer()
+
+    clean_tokens = [lemmatizer.lemmatize(tok).lower().strip() for tok in tokens]
+
+    return clean_tokens
+
+
+# Helper functions for building sklearn pipeline
+
+def get_message_col(X):
+    """
+    Return only message column
+    """
+    return X["message"]
+
+
+def get_genre_col(X):
+    """
+    Return only genre column
+    """
+    return X["genre"]
+
+
+def get_dummies(X):
+    """
+    one-hot encode the categorical variables
+    """
+    return pd.get_dummies(X)
 
 
 def build_model():
-    pass
+    """
+    Return sklearn pipeline with Random Forrest Classifier
+    """
+
+    # Take message collumn and tokenize it
+    text_pipeline = Pipeline([
+        ('get_text', FunctionTransformer(get_message_col, validate=False)),
+        ('vect', CountVectorizer(tokenizer=tokenize)),
+        ('tfidf', TfidfTransformer())
+    ])
+
+    # one-hot-encode "genre" column
+    genre_pipeline = Pipeline([
+        ('get_genre', FunctionTransformer(get_genre_col, validate=False)),
+        ('get_dummies', FunctionTransformer(get_dummies, validate=False))
+    ])
+
+    # join both transformations into single DataFrame
+    features = FeatureUnion([
+        ('text_pipeline', text_pipeline),
+        ('genre_pipeline', genre_pipeline)
+    ])
+
+    # join data transformation with Multi Output Random Forest Classifier
+    pipeline = Pipeline([
+        ('features', features),
+        ('clf', MultiOutputClassifier(RandomForestClassifier(n_estimators=5, min_samples_split=6), n_jobs=-1))
+    ])
+
+    return pipeline
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
