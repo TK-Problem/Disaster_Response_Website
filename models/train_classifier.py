@@ -1,6 +1,7 @@
 import sys
 import pandas as pd
 import nltk
+import pickle
 
 nltk.download(['punkt', 'wordnet'])
 from nltk.tokenize import word_tokenize
@@ -66,7 +67,7 @@ def get_dummies(X):
     """
     return pd.get_dummies(X)
 
-###
+####################################################
 
 
 def build_model():
@@ -127,7 +128,13 @@ def evaluate_model(model, X_test, Y_test):
 
 
 def save_model(model, model_filepath):
-    pass
+    """
+    :param model: sklearn trained model
+    :param model_filepath: str, filepath, where to save model
+
+    Save sklearn model as a pickle file
+    """
+    pickle.dump(model, open(model_filepath, 'wb'))
 
 
 def main():
