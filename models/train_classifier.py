@@ -12,6 +12,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 
 def load_data(database_filepath):
@@ -21,15 +22,13 @@ def load_data(database_filepath):
     :param database_filepath: str, path to SQL database file
     :return: X: pandas Dataframe for training features [message text and message genre]
              y: pandas DataFrame with category messages
-             category_names: message category names
     """
     engine = create_engine('sqlite:///' + database_filepath)
     df = pd.read_sql("SELECT * FROM messages", engine)
     X = df[["message", "genre"]]
     y = df.iloc[:,4:]
-    category_names = y.columns.values.tolist()
 
-    return X, y, category_names
+    return X, y
 
 
 def tokenize(text):
@@ -45,7 +44,7 @@ def tokenize(text):
     return clean_tokens
 
 
-# Helper functions for building sklearn pipeline
+### Helper functions for building sklearn pipeline
 
 def get_message_col(X):
     """
@@ -66,6 +65,8 @@ def get_dummies(X):
     one-hot encode the categorical variables
     """
     return pd.get_dummies(X)
+
+###
 
 
 def build_model():
@@ -101,8 +102,28 @@ def build_model():
     return pipeline
 
 
-def evaluate_model(model, X_test, Y_test, category_names):
-    pass
+def evaluate_model(model, X_test, Y_test):
+    """
+    :param model: sklearn trained model
+    :param X_test: pandas test DataFrame
+    :param Y_test: test data labels
+
+    print out accuracy, precision, recall and fą scores for all message categories
+    """
+
+    # predict on test data
+    Y_pred = model.predict(X_test)
+    for idx in range(Y_test.columns.shape[0]):
+        test = Y_test[Y_test.columns[idx]].values
+        pred = Y_pred[:,idx]
+
+        # calculate different scores
+        accu = accuracy_score(test, pred)
+        prec = precision_score(test, pred)
+        reca = recall_score(test, pred)
+        f1_s = f1_score(test, pred)
+        # print results
+        print(f"{Y_test.columns[idx]:22s} | accuracy: {accu:.2f} | precision: {prec:.2f} | recall: {reca:.2f} | f1 score: {f1_s:.2f}")
 
 
 def save_model(model, model_filepath):
@@ -113,7 +134,7 @@ def main():
     if len(sys.argv) == 3:
         database_filepath, model_filepath = sys.argv[1:]
         print('Loading data...\n    DATABASE: {}'.format(database_filepath))
-        X, Y, category_names = load_data(database_filepath)
+        X, Y = load_data(database_filepath)
         X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
         
         print('Building model...')
@@ -123,7 +144,7 @@ def main():
         model.fit(X_train, Y_train)
         
         print('Evaluating model...')
-        evaluate_model(model, X_test, Y_test, category_names)
+        evaluate_model(model, X_test, Y_test)
 
         print('Saving model...\n    MODEL: {}'.format(model_filepath))
         save_model(model, model_filepath)
