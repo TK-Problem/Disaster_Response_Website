@@ -76,9 +76,9 @@ def index():
             ],
 
             'layout': {
-                'title': 'F1-scores',
+                'title': 'F1-scores for different message types',
                 'yaxis': {
-                    'title': "F1-scores for different message types"
+                    'title': "F1-score"
                 },
                 'margin': dict(b=150),
                 'xaxis': {
