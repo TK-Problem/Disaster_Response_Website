@@ -2,8 +2,30 @@
 
 ## Description
 
+This project contains web app which can categorize emergency messages into 36 categories. Project structure:
 
-## How to use instructions:
+* `app` folder
+
+    * `templates` folder
+        * `master.htlm` main page html code for the web app
+        * `go.html` web page for classification results
+    * `run.py` Flask file that runs app
+    
+* `data` folder
+
+    * `disaster_categories.csv` contains data about disaster message categories
+    * `disaster_messages.csv` contains text data of original and translated disaster messages
+    * `process_data.py` python scrip to preprocess csv files for machine learning pipeline
+    * `DisasterResponse.db` SQL database with processes data for machine learning pipeline
+    
+* `models` folder
+
+    * `train_classifier.py` python script with machine learning pipeline
+    * `classifier.pkl` trained random forest model
+        
+
+## How to use
+
 1. Run the following commands in the project's root directory to set up your database and model.
 
     - To run ETL pipeline that cleans data and stores in database
