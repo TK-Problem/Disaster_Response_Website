@@ -8,9 +8,8 @@ from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from sqlalchemy import create_engine
 from sklearn.model_selection import train_test_split
-from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
-from sklearn.preprocessing import FunctionTransformer
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
@@ -26,7 +25,7 @@ def load_data(database_filepath):
     """
     engine = create_engine('sqlite:///' + database_filepath)
     df = pd.read_sql("SELECT * FROM messages", engine)
-    X = df[["message", "genre"]]
+    X = df["message"]
     y = df.iloc[:,4:]
 
     return X, y
@@ -45,58 +44,15 @@ def tokenize(text):
     return clean_tokens
 
 
-### Helper functions for building sklearn pipeline
-
-def get_message_col(X):
-    """
-    Return only message column
-    """
-    return X["message"]
-
-
-def get_genre_col(X):
-    """
-    Return only genre column
-    """
-    return X["genre"]
-
-
-def get_dummies(X):
-    """
-    one-hot encode the categorical variables
-    """
-    return pd.get_dummies(X)
-
-####################################################
-
-
 def build_model():
     """
     Return sklearn pipeline with Random Forrest Classifier
     """
 
-    # Take message collumn and tokenize it
-    text_pipeline = Pipeline([
-        ('get_text', FunctionTransformer(get_message_col, validate=False)),
-        ('vect', CountVectorizer(tokenizer=tokenize)),
-        ('tfidf', TfidfTransformer())
-    ])
-
-    # one-hot-encode "genre" column
-    genre_pipeline = Pipeline([
-        ('get_genre', FunctionTransformer(get_genre_col, validate=False)),
-        ('get_dummies', FunctionTransformer(get_dummies, validate=False))
-    ])
-
-    # join both transformations into single DataFrame
-    features = FeatureUnion([
-        ('text_pipeline', text_pipeline),
-        ('genre_pipeline', genre_pipeline)
-    ])
-
     # join data transformation with Multi Output Random Forest Classifier
     pipeline = Pipeline([
-        ('features', features),
+        ('vect', CountVectorizer(tokenizer=tokenize)),
+        ('tfidf', TfidfTransformer()),
         ('clf', MultiOutputClassifier(RandomForestClassifier(n_estimators=5, min_samples_split=6), n_jobs=-1))
     ])
 
