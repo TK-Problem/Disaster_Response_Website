@@ -2,7 +2,9 @@
 
 ## Description
 
-This project contains web app which can categorize emergency messages into 36 categories. Project structure:
+This project contains web app which can classify emergency messages into 36 categories. Training data was provided by 
+[Figure-Eight](https://www.figure-eight.com/). Project is based on [Udacity](https://udacity.com/) data scientist
+nano-degree "Disaster Response Pipeline" project. Project structure:
 
 * `app` folder
 
@@ -23,6 +25,16 @@ This project contains web app which can categorize emergency messages into 36 ca
     * `train_classifier.py` python script with machine learning pipeline
     * `classifier.pkl` trained random forest model
         
+
+## Screenshots
+
+### Main screen
+
+![start](images/main_screen.png "Main screen")
+
+### After submitting message
+
+![start](images/message_classification.png "Main screen")
 
 ## How to use
 
